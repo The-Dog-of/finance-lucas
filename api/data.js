@@ -1,41 +1,51 @@
 export default async function handler(req, res) {
-    const KV_URL = process.env.KV_REST_API_URL;
-    const KV_TOKEN = process.env.KV_REST_API_TOKEN;
+    const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
 
-    if (!KV_URL || !KV_TOKEN) {
-        return res.status(500).json({ error: 'Banco de dados KV não configurado.' });
+    if (!BLOB_TOKEN) {
+        return res.status(500).json({ error: 'Vercel Blob não configurado.' });
     }
+
+    const FILENAME = 'finances_data.json';
 
     if (req.method === 'GET') {
         try {
-            const response = await fetch(`${KV_URL}/get/financesData`, {
-                headers: { Authorization: `Bearer ${KV_TOKEN}` }
+            const listRes = await fetch(`https://blob.vercel-storage.com/?prefix=${FILENAME}`, {
+                headers: {
+                    authorization: `Bearer ${BLOB_TOKEN}`,
+                    'x-api-version': '7'
+                }
             });
-            const data = await response.json();
-            let parsed = { transactions: [], goals: [] };
-            
-            if (data.result) {
-                parsed = typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
+            const list = await listRes.json();
+
+            if (!list.blobs || list.blobs.length === 0) {
+                return res.status(200).json({ transactions: [], goals: [] });
             }
-            return res.status(200).json(parsed);
+
+            const fileUrl = list.blobs[0].url;
+            const dataRes = await fetch(fileUrl);
+            const data = await dataRes.json();
+
+            return res.status(200).json(data);
         } catch (err) {
-            return res.status(500).json({ error: 'Erro ao ler dados.' });
+            return res.status(500).json({ error: 'Erro ao ler dados da nuvem.' });
         }
     }
 
     if (req.method === 'POST') {
         try {
-            await fetch(`${KV_URL}/set/financesData`, {
-                method: 'POST',
+            await fetch(`https://blob.vercel-storage.com/${FILENAME}`, {
+                method: 'PUT',
                 headers: { 
-                    Authorization: `Bearer ${KV_TOKEN}`, 
-                    'Content-Type': 'application/json' 
+                    authorization: `Bearer ${BLOB_TOKEN}`, 
+                    'x-api-version': '7',
+                    'x-add-random-suffix': 'false',
+                    'content-type': 'application/json' 
                 },
                 body: JSON.stringify(req.body)
             });
             return res.status(200).json({ success: true });
         } catch (err) {
-            return res.status(500).json({ error: 'Erro ao salvar dados.' });
+            return res.status(500).json({ error: 'Erro ao salvar dados na nuvem.' });
         }
     }
 
