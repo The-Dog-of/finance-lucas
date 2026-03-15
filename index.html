@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Financeiro Pessoal</title>
+    <link rel="stylesheet" href="static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <div id="auth-screen" class="auth-container">
+        <div class="auth-box">
+            <div class="glow-effect"></div>
+            <h2>Bem-vindo ao Painel</h2>
+            <p>Configure seu acesso ou faça login</p>
+            <form id="auth-form">
+                <div class="input-group">
+                    <input type="password" id="app-password" placeholder="Senha de Acesso" required>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="user1-name" placeholder="Nome do Participante 1" required>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="user2-name" placeholder="Nome do Participante 2" required>
+                </div>
+                <button type="submit" class="btn-primary">Entrar no Sistema</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="app-screen" class="app-layout hidden">
+        
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Finanças</h2>
+                <p><span id="display-user1"></span> & <span id="display-user2"></span></p>
+            </div>
+
+            <nav class="premium-tabs">
+                <button class="tab-btn active" data-tab="Geral">Visão Geral (Casal)</button>
+                <button class="tab-btn" id="tab-user1" data-tab="User1">Participante 1</button>
+                <button class="tab-btn" id="tab-user2" data-tab="User2">Participante 2</button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button id="btn-save-json" class="action-btn">Salvar Backup (JSON)</button>
+                <label for="input-load-json" class="action-btn">Restaurar Backup</label>
+                <input type="file" id="input-load-json" accept=".json">
+                <button id="btn-logout" class="action-btn logout-btn">Sair do Painel</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-titles">
+                    <h2 id="current-view-title">Visão Geral do Casal</h2>
+                </div>
+                <div class="header-actions">
+                    <input type="month" id="month-select" class="month-selector">
+                    <button id="theme-toggle" class="theme-btn" title="Alternar Modo Escuro">🌙</button>
+                </div>
+            </header>
+
+            <div id="view-casal" class="dashboard-view">
+                <div class="summary-cards">
+                    <div class="card income-card">
+                        <h3>Entradas do Casal</h3>
+                        <p id="geral-income">R$ 0,00</p>
+                    </div>
+                    <div class="card expense-card">
+                        <h3>Saídas do Casal</h3>
+                        <p id="geral-expense">R$ 0,00</p>
+                    </div>
+                    <div class="card balance-card">
+                        <h3>Saldo Conjunto</h3>
+                        <p id="geral-balance">R$ 0,00</p>
+                    </div>
+                </div>
+
+                <div class="goals-panel panel">
+                    <div class="goals-header">
+                        <div class="goals-title-area">
+                            <h3>Metas e Sonhos do Casal</h3>
+                            <p>Construindo nosso futuro juntos</p>
+                        </div>
+                        <button id="btn-show-goal-form" class="btn-primary">Criar Nova Meta</button>
+                    </div>
+
+                    <form id="form-new-goal" class="smart-entry hidden" style="margin-bottom: 20px;">
+                        <input type="text" id="goal-name" placeholder="Nome da Meta (Ex: Viagem)" required>
+                        <input type="text" id="goal-target" placeholder="Valor Alvo (R$)" required>
+                        <button type="submit" class="btn-add">Salvar Meta</button>
+                        <button type="button" id="btn-cancel-goal" class="btn-cancel">Cancelar</button>
+                    </form>
+
+                    <form id="form-contribute-goal" class="smart-entry hidden" style="margin-bottom: 20px;">
+                        <input type="hidden" id="contribute-goal-id">
+                        <select id="contribute-person" required></select>
+                        <input type="text" id="contribute-value" placeholder="Valor a adicionar (R$)" required>
+                        <button type="submit" class="btn-add">Adicionar Fundo</button>
+                        <button type="button" id="btn-cancel-contribute" class="btn-cancel">Cancelar</button>
+                    </form>
+
+                    <div id="goals-container" class="goals-grid">
+                    </div>
+                </div>
+
+                <div class="charts-wrapper panel">
+                    <div class="charts-grid">
+                        <div class="canvas-container">
+                            <canvas id="financeChartGeral"></canvas>
+                        </div>
+                        <div class="canvas-container">
+                            <canvas id="categoryChartGeral"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-individual" class="dashboard-view hidden">
+                <div class="summary-cards">
+                    <div class="card income-card">
+                        <h3>Minhas Entradas</h3>
+                        <p id="indiv-income">R$ 0,00</p>
+                    </div>
+                    <div class="card expense-card">
+                        <h3>Minhas Saídas</h3>
+                        <p id="indiv-expense">R$ 0,00</p>
+                    </div>
+                    <div class="card balance-card">
+                        <h3>Meu Saldo</h3>
+                        <p id="indiv-balance">R$ 0,00</p>
+                    </div>
+                </div>
+
+                <div class="entry-section panel">
+                    <div class="quick-add-container">
+                        <span class="quick-add-label">Acesso Rápido:</span>
+                        <button class="quick-chip" data-quick="ifood">🍕 Ifood/Lanche</button>
+                        <button class="quick-chip" data-quick="mercado">🛒 Mercado</button>
+                        <button class="quick-chip" data-quick="transporte">⛽ Transporte</button>
+                        <button class="quick-chip" data-quick="salario">💰 Salário</button>
+                    </div>
+
+                    <form id="finance-form" class="smart-entry">
+                        <input type="hidden" id="edit-id">
+                        <input type="date" id="date" required>
+                        <select id="type" required>
+                            <option value="Entrada">Entrada</option>
+                            <option value="Saida" selected>Saída</option>
+                        </select>
+                        <select id="method" required>
+                            <option value="Pix">Pix</option>
+                            <option value="Cartão de Crédito">Cartão de Crédito</option>
+                            <option value="Cartão de Débito">Cartão de Débito</option>
+                            <option value="Dinheiro">Dinheiro</option>
+                        </select>
+                        <select id="category" required>
+                            <option value="Alimentação">Alimentação</option>
+                            <option value="Moradia">Moradia</option>
+                            <option value="Transporte">Transporte</option>
+                            <option value="Lazer">Lazer</option>
+                            <option value="Saúde">Saúde</option>
+                            <option value="Salário/Renda">Salário/Renda</option>
+                            <option value="Investimento">Investimento</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                        <input type="text" id="description" placeholder="Descrição rápida (Opcional)">
+                        <input type="text" id="value" placeholder="R$ 0,00" required>
+                        <button type="submit" id="submit-btn" class="btn-add">Lançar</button>
+                        <button type="button" id="cancel-edit-btn" class="btn-cancel hidden">Cancelar</button>
+                    </form>
+                </div>
+
+                <div class="data-area">
+                    <div class="table-section panel">
+                        <div class="table-scroll">
+                            <table id="finance-table">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Tipo</th>
+                                        <th>Método</th>
+                                        <th>Categoria</th>
+                                        <th>Descrição</th>
+                                        <th>Valor</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script src="script/main.js"></script>
+</body>
+</html>
