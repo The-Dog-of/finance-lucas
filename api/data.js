@@ -1,51 +1,32 @@
+import { put, list } from '@vercel/blob';
+
 export default async function handler(req, res) {
-    const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
-
-    if (!BLOB_TOKEN) {
-        return res.status(500).json({ error: 'Vercel Blob não configurado.' });
-    }
-
-    const FILENAME = 'finances_data.json';
-
     if (req.method === 'GET') {
         try {
-            const listRes = await fetch(`https://blob.vercel-storage.com/?prefix=${FILENAME}`, {
-                headers: {
-                    authorization: `Bearer ${BLOB_TOKEN}`,
-                    'x-api-version': '7'
-                }
-            });
-            const list = await listRes.json();
-
-            if (!list.blobs || list.blobs.length === 0) {
+            const { blobs } = await list({ prefix: 'finances_data.json' });
+            
+            if (blobs.length === 0) {
                 return res.status(200).json({ transactions: [], goals: [] });
             }
-
-            const fileUrl = list.blobs[0].url;
-            const dataRes = await fetch(fileUrl);
-            const data = await dataRes.json();
-
+            
+            const response = await fetch(blobs[0].url, { cache: 'no-store' });
+            const data = await response.json();
             return res.status(200).json(data);
-        } catch (err) {
-            return res.status(500).json({ error: 'Erro ao ler dados da nuvem.' });
+            
+        } catch (e) {
+            return res.status(500).json({ error: 'Erro ao ler a nuvem.' });
         }
     }
 
     if (req.method === 'POST') {
         try {
-            await fetch(`https://blob.vercel-storage.com/${FILENAME}`, {
-                method: 'PUT',
-                headers: { 
-                    authorization: `Bearer ${BLOB_TOKEN}`, 
-                    'x-api-version': '7',
-                    'x-add-random-suffix': 'false',
-                    'content-type': 'application/json' 
-                },
-                body: JSON.stringify(req.body)
+            await put('finances_data.json', JSON.stringify(req.body), { 
+                access: 'public', 
+                addRandomSuffix: false 
             });
             return res.status(200).json({ success: true });
-        } catch (err) {
-            return res.status(500).json({ error: 'Erro ao salvar dados na nuvem.' });
+        } catch (e) {
+            return res.status(500).json({ error: 'Erro ao salvar na nuvem.' });
         }
     }
 
