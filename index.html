@@ -13,16 +13,10 @@
         <div class="auth-box">
             <div class="glow-effect"></div>
             <h2>Bem-vindo ao Painel</h2>
-            <p>Configure seu acesso ou faça login</p>
+            <p>Digite sua senha de acesso</p>
             <form id="auth-form">
                 <div class="input-group">
-                    <input type="password" id="app-password" placeholder="Senha de Acesso" required>
-                </div>
-                <div class="input-group">
-                    <input type="text" id="user1-name" placeholder="Nome do Participante 1" required>
-                </div>
-                <div class="input-group">
-                    <input type="text" id="user2-name" placeholder="Nome do Participante 2" required>
+                    <input type="password" id="app-password" placeholder="Senha Master" required>
                 </div>
                 <button type="submit" class="btn-primary">Entrar no Sistema</button>
             </form>
@@ -31,10 +25,15 @@
 
     <div id="app-screen" class="app-layout hidden">
         
-        <aside class="sidebar">
+        <div id="mobile-overlay" class="mobile-overlay hidden"></div>
+
+        <aside id="sidebar" class="sidebar">
             <div class="sidebar-header">
-                <h2>Finanças</h2>
-                <p><span id="display-user1"></span> & <span id="display-user2"></span></p>
+                <div class="sidebar-title-row">
+                    <h2>Finanças</h2>
+                    <button id="close-sidebar-btn" class="close-sidebar hidden">✕</button>
+                </div>
+                <p><span id="display-user1">Participante 1</span> & <span id="display-user2">Participante 2</span></p>
             </div>
 
             <nav class="premium-tabs">
@@ -44,8 +43,8 @@
             </nav>
 
             <div class="sidebar-footer">
-                <button id="btn-save-json" class="action-btn">Salvar Backup (JSON)</button>
-                <label for="input-load-json" class="action-btn">Restaurar Backup</label>
+                <button id="btn-save-json" class="action-btn">Baixar Backup Local</button>
+                <label for="input-load-json" class="action-btn">Restaurar Backup Local</label>
                 <input type="file" id="input-load-json" accept=".json">
                 <button id="btn-logout" class="action-btn logout-btn">Sair do Painel</button>
             </div>
@@ -54,6 +53,7 @@
         <main class="main-content">
             <header class="top-header">
                 <div class="header-titles">
+                    <button id="mobile-menu-btn" class="mobile-menu-btn hidden">☰</button>
                     <h2 id="current-view-title">Visão Geral do Casal</h2>
                 </div>
                 <div class="header-actions">

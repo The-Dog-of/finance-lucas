@@ -3,8 +3,6 @@ const authScreen = document.getElementById('auth-screen');
 const appScreen = document.getElementById('app-screen');
 const authForm = document.getElementById('auth-form');
 const appPassword = document.getElementById('app-password');
-const user1Input = document.getElementById('user1-name');
-const user2Input = document.getElementById('user2-name');
 
 const displayUser1 = document.getElementById('display-user1');
 const displayUser2 = document.getElementById('display-user2');
@@ -55,19 +53,33 @@ const themeBtn = document.getElementById('theme-toggle');
 const quickChips = document.querySelectorAll('.quick-chip');
 const toastContainer = document.getElementById('toast-container');
 
+const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+const sidebar = document.getElementById('sidebar');
+const mobileOverlay = document.getElementById('mobile-overlay');
+
 const ctxFinanceGeral = document.getElementById('financeChartGeral').getContext('2d');
 const ctxCategoryGeral = document.getElementById('categoryChartGeral').getContext('2d');
 
 let transactions = [];
 let goals = [];
-let user1Name = '';
-let user2Name = '';
+let user1Name = 'Lucas';
+let user2Name = 'Júlia';
 let financeChartGeral;
 let categoryChartGeral;
 let currentTab = 'Geral';
 let currentMonth = '';
 let editingId = null;
 let isDarkMode = false;
+
+function toggleMenu() {
+    sidebar.classList.toggle('open');
+    mobileOverlay.classList.toggle('active');
+}
+
+mobileMenuBtn.addEventListener('click', toggleMenu);
+closeSidebarBtn.addEventListener('click', toggleMenu);
+mobileOverlay.addEventListener('click', toggleMenu);
 
 function showToast(message, type = 'success') {
     const toast = document.createElement('div');
@@ -178,11 +190,8 @@ quickChips.forEach(chip => {
 
 function initAuth() {
     initTheme();
-    const authData = localStorage.getItem('financesAuth');
-    if (authData) {
-        const parsed = JSON.parse(authData);
-        user1Name = parsed.user1;
-        user2Name = parsed.user2;
+    const authData = localStorage.getItem('financesAuthToken');
+    if (authData === 'true') {
         authScreen.classList.add('hidden');
         appScreen.classList.remove('hidden');
         initApp();
@@ -191,16 +200,13 @@ function initAuth() {
 
 authForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    user1Name = user1Input.value.trim();
-    user2Name = user2Input.value.trim();
     const pass = appPassword.value;
     
-    if (!pass || !user1Name || !user2Name) {
-        showToast('Preencha todos os campos!', 'error');
+    if (!pass) {
+        showToast('Preencha a senha!', 'error');
         return;
     }
 
-    const originalBtnText = submitBtn.textContent;
     const authSubmitBtn = authForm.querySelector('button[type="submit"]');
     authSubmitBtn.textContent = 'Verificando...';
     authSubmitBtn.disabled = true;
@@ -215,15 +221,11 @@ authForm.addEventListener('submit', async (e) => {
         const data = await response.json();
 
         if (data.success) {
-            localStorage.setItem('financesAuth', JSON.stringify({
-                logged: true,
-                user1: user1Name,
-                user2: user2Name
-            }));
+            localStorage.setItem('financesAuthToken', 'true');
             authScreen.classList.add('hidden');
             appScreen.classList.remove('hidden');
             initApp();
-            showToast('Login realizado com sucesso!');
+            showToast('Acesso liberado!');
         } else {
             showToast(data.message || 'Senha incorreta!', 'error');
         }
@@ -236,9 +238,38 @@ authForm.addEventListener('submit', async (e) => {
 });
 
 btnLogout.addEventListener('click', () => {
-    localStorage.removeItem('financesAuth');
+    localStorage.removeItem('financesAuthToken');
     location.reload();
 });
+
+async function loadCloudData() {
+    try {
+        const res = await fetch('/api/data');
+        if (res.ok) {
+            const data = await res.json();
+            transactions = data.transactions || [];
+            goals = data.goals || [];
+            updateUI();
+        } else {
+            showToast('Erro ao ler a nuvem.', 'error');
+        }
+    } catch (e) {
+        showToast('Falha na conexão com a nuvem.', 'error');
+    }
+}
+
+async function saveData() {
+    try {
+        const payload = { transactions, goals };
+        await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+    } catch (e) {
+        showToast('Erro ao salvar na nuvem!', 'error');
+    }
+}
 
 function initApp() {
     displayUser1.textContent = user1Name;
@@ -251,45 +282,13 @@ function initApp() {
         <option value="${user2Name}">${user2Name}</option>
     `;
 
-    const savedData = localStorage.getItem('financesDataV2');
-    if (savedData) {
-        try {
-            const parsed = JSON.parse(savedData);
-            transactions = parsed.transactions || [];
-            goals = parsed.goals || [];
-        } catch (e) {
-            showToast('Erro ao carregar dados salvos.', 'error');
-        }
-    } else {
-        const oldData = localStorage.getItem('financesData');
-        if (oldData) {
-            try {
-                transactions = JSON.parse(oldData);
-            } catch (e) {
-                showToast('Erro ao migrar dados antigos.', 'error');
-            }
-        }
-    }
-
     const today = new Date();
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, '0');
     currentMonth = `${year}-${month}`;
     monthSelect.value = currentMonth;
 
-    updateUI();
-}
-
-function saveData() {
-    try {
-        const payload = {
-            transactions: transactions,
-            goals: goals
-        };
-        localStorage.setItem('financesDataV2', JSON.stringify(payload));
-    } catch (e) {
-        showToast('Erro crítico ao salvar no dispositivo!', 'error');
-    }
+    loadCloudData();
 }
 
 function getChartColors() {
@@ -468,6 +467,8 @@ tabButtons.forEach(btn => {
         
         if (editingId) resetForm();
         updateUI();
+        
+        if (window.innerWidth <= 1024) toggleMenu();
     });
 });
 

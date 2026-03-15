@@ -90,12 +90,13 @@ body {
     padding: 40px;
     border-radius: 20px;
     width: 100%;
-    max-width: 420px;
+    max-width: 400px;
     text-align: center;
     position: relative;
     z-index: 1;
     color: white;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    margin: 20px;
 }
 
 .auth-box h2 {
@@ -162,6 +163,24 @@ body {
     width: 100vw;
 }
 
+.mobile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 15;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.mobile-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
 .sidebar {
     width: 280px;
     background-color: var(--sidebar-bg);
@@ -170,8 +189,8 @@ body {
     flex-direction: column;
     flex-shrink: 0;
     box-shadow: 4px 0 25px rgba(0,0,0,0.05);
-    z-index: 10;
-    transition: background-color 0.3s;
+    z-index: 20;
+    transition: background-color 0.3s, transform 0.3s ease;
 }
 
 .sidebar-header {
@@ -179,13 +198,28 @@ body {
     border-bottom: 1px solid var(--sidebar-border);
 }
 
+.sidebar-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
 .sidebar-header h2 {
     font-size: 1.5rem;
     color: #38bdf8;
-    margin-bottom: 6px;
     text-transform: uppercase;
     letter-spacing: 1px;
     font-weight: 800;
+}
+
+.close-sidebar {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--sidebar-muted);
+    font-size: 1.5rem;
+    cursor: pointer;
 }
 
 .sidebar-header p {
@@ -291,6 +325,15 @@ body {
     display: flex;
     align-items: center;
     gap: 16px;
+}
+
+.mobile-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    color: var(--text-main);
+    cursor: pointer;
 }
 
 .top-header h2 {
@@ -477,7 +520,7 @@ body {
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
-.btn-add {
+.btn-add, .goals-header .btn-primary {
     flex: 0 0 auto !important;
     padding: 14px 28px;
     background: linear-gradient(90deg, #10b981, #059669);
@@ -491,9 +534,19 @@ body {
     box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
 }
 
+.goals-header .btn-primary {
+    background: linear-gradient(90deg, #3b82f6, #2563eb);
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+}
+
 .btn-add:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 15px rgba(16, 185, 129, 0.4);
+}
+
+.goals-header .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(59, 130, 246, 0.4);
 }
 
 .btn-add.edit-mode {
@@ -540,13 +593,14 @@ body {
 .table-scroll {
     flex: 1;
     overflow-y: auto;
-    padding-right: 8px;
+    overflow-x: auto;
 }
 
 table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
+    min-width: 600px;
 }
 
 th, td {
@@ -656,7 +710,7 @@ tbody tr:hover {
 
 .goals-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 24px;
 }
 
@@ -787,4 +841,67 @@ canvas {
 @media (max-width: 1024px) {
     .charts-grid { grid-template-columns: 1fr; }
     .summary-cards { grid-template-columns: 1fr; gap: 16px; }
+    .main-content { padding: 24px; }
+}
+
+@media (max-width: 1024px) {
+    .mobile-menu-btn { display: block; }
+    .close-sidebar { display: block; }
+    
+    .sidebar {
+        position: fixed;
+        left: -100%;
+        top: 0;
+        height: 100vh;
+    }
+    
+    .sidebar.open {
+        transform: translateX(100%);
+    }
+
+    .main-content { padding: 16px; }
+    
+    .top-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .smart-entry {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .smart-entry > * {
+        width: 100%;
+    }
+
+    .btn-add, .goals-header .btn-primary, .btn-cancel {
+        width: 100%;
+    }
+
+    .panel {
+        padding: 20px;
+    }
+
+    .goals-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    
+    .toast-container {
+        top: 20px;
+        right: 20px;
+        left: 20px;
+    }
+    
+    .toast {
+        width: 100%;
+    }
 }
